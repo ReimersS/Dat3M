@@ -1,0 +1,74 @@
+diff --git a/dartagnan/pom.xml b/dartagnan/pom.xml
+index 6617b46c2..aaa1c6987 100644
+--- a/dartagnan/pom.xml
++++ b/dartagnan/pom.xml
+@@ -124,26 +124,6 @@
+                     </execution>
+                 </executions>
+             </plugin>
+-            <plugin>
+-                <groupId>pl.project13.maven</groupId>
+-                <artifactId>git-commit-id-plugin</artifactId>
+-                <version>${git-commit-id-plugin.version}</version>
+-                <executions>
+-                    <execution>
+-                        <id>populate-git-commit-information</id>
+-                        <goals>
+-                            <goal>revision</goal>
+-                        </goals>
+-                        <configuration>
+-                            <generateGitPropertiesFile>true</generateGitPropertiesFile>
+-                            <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+-                        </configuration>
+-                    </execution>
+-                </executions>
+-                <configuration>
+-                    <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+-                </configuration>
+-            </plugin>
+             <plugin>
+                 <artifactId>maven-jar-plugin</artifactId>
+                 <configuration>
+diff --git a/pom.xml b/pom.xml
+index b4252b800..1cc2fee3f 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -54,7 +54,6 @@
+ 
+         <!-- 3rd party plugin versions -->
+         <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
+-        <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
+         <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
+     </properties>
+ 
+diff --git a/svcomp/pom.xml b/svcomp/pom.xml
+index aef115af2..a76935059 100644
+--- a/svcomp/pom.xml
++++ b/svcomp/pom.xml
+@@ -40,26 +40,6 @@
+                     </archive>
+                 </configuration>
+             </plugin>
+-            <plugin>
+-                <groupId>pl.project13.maven</groupId>
+-                <artifactId>git-commit-id-plugin</artifactId>
+-                <version>${git-commit-id-plugin.version}</version>
+-                <executions>
+-                    <execution>
+-                        <id>populate-git-commit-information</id>
+-                        <goals>
+-                            <goal>revision</goal>
+-                        </goals>
+-                        <configuration>
+-                            <generateGitPropertiesFile>true</generateGitPropertiesFile>
+-                            <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+-                        </configuration>
+-                    </execution>
+-                </executions>
+-                <configuration>
+-                    <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+-                </configuration>
+-            </plugin>
+         </plugins>
+     </build>
+ </project>
