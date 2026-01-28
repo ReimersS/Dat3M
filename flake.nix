@@ -5,6 +5,10 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
+        FixedHashes = {
+          x86_64-linux = "sha256-uRgAqglDrOkLMtWI1Bleefo6lDiotIj9lb31px1zTB4=";
+          aarch64-linux = "sha256-t837WYusF1ePHgHXY3lmP+wESe/GU6QtjEgNkv4zOy0=";
+        };
       in
       {
         packages.default = pkgs.maven.buildMavenPackage rec {
@@ -18,7 +22,7 @@
 
           patches = [ ./git-id.patch ];
 
-          mvnHash = "sha256-uRgAqglDrOkLMtWI1Bleefo6lDiotIj9lb31px1zTB4=";
+          mvnHash = FixedHashes.${system};
 
           installPhase = ''
             mkdir -p $out
