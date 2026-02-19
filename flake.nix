@@ -6,7 +6,7 @@
       let
         pkgs = import nixpkgs { inherit system; };
         FixedHashes = {
-          x86_64-linux = "sha256-uRgAqglDrOkLMtWI1Bleefo6lDiotIj9lb31px1zTB4=";
+          x86_64-linux = "sha256-dK0GgR3A//wQ29jRlocWBxPp3o6tdxy2iUf6zTMgV9w=";
           aarch64-linux = "sha256-t837WYusF1ePHgHXY3lmP+wESe/GU6QtjEgNkv4zOy0=";
         };
       in
@@ -15,7 +15,7 @@
           pname = "Dat3m";
           name = "dartagnan";
           src = self;
-          version = "4.3.0";
+          version = "4.4.0-alpha";
 
           nativeBuildInputs = with pkgs; [ makeWrapper jre25_minimal clang ];
           mvnParameters = "-DskipTests";
