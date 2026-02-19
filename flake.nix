@@ -17,10 +17,8 @@
           src = self;
           version = "4.3.0";
 
-          nativeBuildInputs = with pkgs; [ makeWrapper jre25_minimal ];
+          nativeBuildInputs = with pkgs; [ makeWrapper jre25_minimal clang ];
           mvnParameters = "-DskipTests";
-
-          patches = [ ./git-id.patch ];
 
           mvnHash = FixedHashes.${system};
 
