@@ -17,7 +17,7 @@
           src = self;
           version = "4.4.0-alpha";
 
-          nativeBuildInputs = with pkgs; [ makeWrapper jre25_minimal clang ];
+          nativeBuildInputs = with pkgs; [ makeWrapper jre25_minimal jdk25_headless clang ];
           mvnParameters = "-DskipTests";
 
           mvnHash = FixedHashes.${system};
