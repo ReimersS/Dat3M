@@ -17,7 +17,7 @@
           src = self;
           version = "4.3.0";
 
-          nativeBuildInputs = with pkgs; [ makeWrapper ];
+          nativeBuildInputs = with pkgs; [ makeWrapper jre25_minimal ];
           mvnParameters = "-DskipTests";
 
           patches = [ ./git-id.patch ];
