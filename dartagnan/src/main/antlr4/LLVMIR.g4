@@ -349,6 +349,7 @@ paramAttribute:
 	| byval
 	| captures
 	| dereferenceable
+	| deadOnUnwind
 	| elementType
 	| inAlloca
 	| initializes
@@ -374,6 +375,7 @@ byval: 'byval' ( '(' type ')')?;
 dereferenceable:
 	'dereferenceable' '(' IntLit ')'
 	| 'dereferenceable_or_null' '(' IntLit ')';
+deadOnUnwind: 'dead_on_unwind';
 elementType: 'elementtype' '(' type ')';
 inAlloca: 'inalloca' '(' type ')';
 paramAttr:
@@ -395,13 +397,12 @@ paramAttr:
 	| 'swifterror'
 	| 'swiftself'
 	| 'writeonly'
+	| 'writable'
 	| 'zeroext';
 preallocated: 'preallocated' '(' type ')';
-captures: 'captures' '(' components ')';
-components: component;
-component:
+captures: 'captures' '(' component (',' component)* ')';component:
     | 'none'
-    | 'address'
+    | 'ret'? 'address'
     | 'address_is_null'
     | 'provenance'
     | 'read_provenance';

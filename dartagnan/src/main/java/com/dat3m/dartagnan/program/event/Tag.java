@@ -197,6 +197,9 @@ public final class Tag {
         public static final String AFTER_SPINLOCK           = "After-spinlock";
         public static final String AFTER_UNLOCK_LOCK        = "After-unlock-lock";
 
+        public static final String DEP_BEGINGS              = "Dependency-begins";
+        public static final String DEP_ENDS                 = "Dependency-ends";
+
         // NOTE: The order below needs to be in sync with /include/lkmm.h
         public static String intToMo(int i) {
             return switch (i) {

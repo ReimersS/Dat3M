@@ -100,6 +100,7 @@ public class ProcessingManager implements ProgramProcessor {
         programProcessors.addAll(Arrays.asList(
                 printBeforeProcessing ? DebugPrint.withHeader("Before processing", Printer.Mode.ALL, config) : null,
                 intrinsics.markIntrinsicsPass(),
+                LkmmIntrinsics.newInstance(),
                 ProgramProcessor.fromFunctionProcessor(intrinsics.earlyInliningPass(), Target.ALL, true),
                 GEPToAddition.newInstance(),
                 NaiveDevirtualisation.newInstance(),

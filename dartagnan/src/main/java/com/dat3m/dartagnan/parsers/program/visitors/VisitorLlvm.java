@@ -19,6 +19,7 @@ import com.dat3m.dartagnan.program.event.Tag;
 import com.dat3m.dartagnan.program.event.core.Label;
 import com.dat3m.dartagnan.program.event.metadata.Metadata;
 import com.dat3m.dartagnan.program.event.metadata.SourceLocation;
+import com.dat3m.dartagnan.program.event.metadata.lkmm.*;
 import com.dat3m.dartagnan.program.memory.MemoryObject;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -251,7 +252,7 @@ public class VisitorLlvm extends LLVMIRBaseVisitor<Expression> {
         final String name = globalIdent(ctx.GlobalIdent());
         check(!constantMap.containsKey(name), "Redeclared constant in %s.", ctx);
         final int size = types.getMemorySizeInBytes(parseType(ctx.type()));
-        if (size > 0) {
+        if (size >= 0) {
             final MemoryObject globalObject = program.getMemory().allocate(size);
             globalObject.setName(name);
             if (ctx.threadLocal() != null) {
@@ -318,6 +319,27 @@ public class VisitorLlvm extends LLVMIRBaseVisitor<Expression> {
                         .orElse(new MdGenericValue<BigInteger>(BigInteger.ZERO)).value().intValue();
                 metadata.add(new SourceLocation((directory + "/" + filename).intern(), lineNumber));
             }
+            if (metadataCtx.getText().contains("!begins_ctrl_dep") || metadataCtx.getText().contains("!begins_addr_dep") || metadataCtx.getText().contains("!begins_data_dep")) {
+                metadata.add(new Dependency(true));
+            }
+            if (metadataCtx.getText().contains("!ends_ctrl_dep") || metadataCtx.getText().contains("!ends_addr_dep") || metadataCtx.getText().contains("!ends_data_dep")) {
+                metadata.add(new Dependency(false));
+            }
+            if (mdNode!= null && mdNode.toString().contains("__depsan_ronce")) {
+                metadata.add(new LkmmIntrinsic("READ_ONCE"));
+            }
+            if (mdNode!= null && mdNode.toString().contains("__depsan_wonce")) {
+                metadata.add(new LkmmIntrinsic("WRITE_ONCE"));
+            }
+            if (mdNode!= null && mdNode.toString().contains("__depsan_mb")) {
+                metadata.add(new LkmmIntrinsic("mb"));
+            }
+            if (mdNode!= null && mdNode.toString().contains("__depsan_rmb")) {
+                metadata.add(new LkmmIntrinsic("rmb"));
+            }
+            if (mdNode!= null && mdNode.toString().contains("__depsan_wmb")) {
+                metadata.add(new LkmmIntrinsic("wmb"));
+            }
         }
 
         return metadata;
@@ -357,25 +379,39 @@ public class VisitorLlvm extends LLVMIRBaseVisitor<Expression> {
     }
 
     @Override
+    public Expression visitCallBrTerm(CallBrTermContext ctx) {
+        final Register choice = getOrNewRegister("callbr_case", types.getIntegerType(32));
+        block.events.add(EventFactory.newNonDetChoice(choice));
+        final Label defaultTarget = getJumpLabel(ctx.label(0));
+        for (int i = 1; i < ctx.label().size(); i++) {
+            final Label jumpTarget = getJumpLabel(ctx.label(i));
+            final Expression caseCheck = expressions.makeEQ(choice, expressions.makeValue(i, types.getIntegerType(32)));
+            block.events.add(newJump(caseCheck, jumpTarget));
+        }
+        block.events.add(newGoto(defaultTarget));
+
+        return null;
+    }
+
+    @Override
     public Expression visitCallInst(CallInstContext ctx) {
         // see https://llvm.org/docs/LangRef.html#call-instruction
         final Type type = parseType(ctx.type());
         // Calls can either list the full function type or just the return type.
         final Type returnType = type instanceof FunctionType funcType ? funcType.getReturnType() : type;
 
+        final Register resultRegister = currentRegisterName == null ? null :
+                getOrNewRegister(currentRegisterName, returnType);
+
         final var arguments = new ArrayList<Expression>();
         for (final ArgContext argument : ctx.args().arg()) {
             if (argument.value() == null) {
-                //TODO metadata calls are ignored
-                return null;
+                return resultRegister; // TODO
             }
             assert argument.concreteType() != null;
             final Type argumentType = parseType(argument.concreteType());
             arguments.add(checkExpression(argumentType, argument.value()));
         }
-
-        final Register resultRegister = currentRegisterName == null ? null :
-                getOrNewRegister(currentRegisterName, returnType);
 
         if (ctx.inlineAsm() != null) {
             String asmCode = ctx.inlineAsm().inlineAsmBody().getText();
@@ -398,7 +434,7 @@ public class VisitorLlvm extends LLVMIRBaseVisitor<Expression> {
                         block.events.addAll(events.get());
                         break;
                     }
-                } catch (UnsupportedOperationException e) {
+                } catch (Exception e) { // TODO check why null pointer
                     logger.warn("Support for inline assembly instruction '{}' is not available for parser '{}'. Setting non deterministic value ", e.getMessage(), parser.getClass().getSimpleName());
                     if(resultRegister != null){
                         Event nonDeterministicValue = EventFactory.newNonDetChoice(resultRegister);
@@ -409,12 +445,9 @@ public class VisitorLlvm extends LLVMIRBaseVisitor<Expression> {
                 }
             }
             if(!unsupportedEncountered && events.isEmpty()){
-                String msg = "Ignoring call.";
-                if(resultRegister != null){
-                    block.events.add(EventFactory.newNonDetChoice(resultRegister));
-                    msg = "Setting non deterministic value.";
-                }
-                logger.warn("None of the parsers succeeded for inline assembly." + msg);
+                String msg = resultRegister != null ? "Setting non deterministic value." : "Ignoring call.";
+                Register rReg = resultRegister != null ? resultRegister : getOrNewRegister("_asm", types.getArchType());
+                block.events.add(EventFactory.newNonDetChoice(rReg));                logger.warn("None of the parsers succeeded for inline assembly." + msg);
             }
             return resultRegister;
         }
@@ -1388,6 +1421,11 @@ public class VisitorLlvm extends LLVMIRBaseVisitor<Expression> {
     }
 
     @Override
+    public Expression visitDiLexicalBlockFile(DiLexicalBlockFileContext ctx) {
+        return parseSpecialMdNode(SpecialMdTupleNode.Type.DILexicalBlockFile, ctx.diLexicalBlockFileField());
+    }
+
+    @Override
     public Expression visitDiSubprogram(DiSubprogramContext ctx) {
         return parseSpecialMdNode(SpecialMdTupleNode.Type.DISubprogram, ctx.diSubprogramField());
     }
@@ -1607,10 +1645,11 @@ public class VisitorLlvm extends LLVMIRBaseVisitor<Expression> {
     private record MdGenericValue<T>(T value) implements MdNode {
         MdGenericValue {
             // This node should only hold values external to the MdNode hierarchy.
+            // TODO check for null
             Preconditions.checkArgument(!(value instanceof MdNode));
         }
         @Override
-        public String toString() { return value.toString(); }
+        public String toString() { return value == null ? "" : value.toString(); }
     }
 
     private record MdTuple(List<MdNode> mdFields) implements MdNode {
@@ -1629,7 +1668,8 @@ public class VisitorLlvm extends LLVMIRBaseVisitor<Expression> {
             DILocation,
             DIFile,
             DISubprogram,
-            DILexicalBlock
+            DILexicalBlock,
+            DILexicalBlockFile
         }
 
         @Override

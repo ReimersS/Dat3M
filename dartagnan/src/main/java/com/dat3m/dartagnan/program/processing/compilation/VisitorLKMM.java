@@ -156,15 +156,25 @@ public class VisitorLKMM extends VisitorBase {
     @Override
     public List<Event> visitLKMMLoad(LKMMLoad e) {
         return eventSequence(
-                newCoreLoad(e.getResultRegister(), e.getAddress(), e.getMo())
+                copyDependencyTags(e, newCoreLoad(e.getResultRegister(), e.getAddress(), e.getMo()))
         );
     }
 
     @Override
     public List<Event> visitLKMMStore(LKMMStore e) {
         return eventSequence(
-                newCoreStore(e.getAddress(), e.getMemValue(), e.getMo())
+                copyDependencyTags(e, newCoreStore(e.getAddress(), e.getMemValue(), e.getMo()))
         );
+    }
+
+    private Event copyDependencyTags(Event s, Event t) {
+        if(s.hasTag(Tag.Linux.DEP_BEGINGS)) {
+            t.addTags(Tag.Linux.DEP_BEGINGS);
+        }
+        if(s.hasTag(Tag.Linux.DEP_ENDS)) {
+            t.addTags(Tag.Linux.DEP_ENDS);
+        }
+        return t;
     }
 
     @Override

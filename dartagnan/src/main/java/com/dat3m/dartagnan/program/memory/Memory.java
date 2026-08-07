@@ -39,7 +39,7 @@ public class Memory {
 
     // Generates a new, statically allocated memory object.
     public MemoryObject allocate(int size) {
-        Preconditions.checkArgument(size > 0, "Illegal allocation. Size must be positive");
+        Preconditions.checkArgument(size >= 0, "Illegal allocation. Size must be positive");
         final Expression sizeExpr = ExpressionFactory.getInstance().makeValue(size, archType);
         final MemoryObject memoryObject = new MemoryObject(nextIndex++, sizeExpr, defaultAlignment, null, ptrType);
         objects.add(memoryObject);
