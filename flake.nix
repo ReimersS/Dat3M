@@ -7,7 +7,7 @@
         pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
         FixedHashes = {
           x86_64-linux = "sha256-dK0GgR3A//wQ29jRlocWBxPp3o6tdxy2iUf6zTMgV9w=";
-          aarch64-linux = "sha256-t837WYusF1ePHgHXY3lmP+wESe/GU6QtjEgNkv4zOy0=";
+          aarch64-linux = "sha256-eieSmKQhjNB00YadzSku7jDwNcOollUTl7vWoOHtFMg=";
         };
         graal-mvn = pkgs.maven.override {
           jdk_headless = pkgs.graalvmPackages.graalvm-oracle;
